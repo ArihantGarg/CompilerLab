@@ -1,0 +1,10 @@
+3
+E -> E+T | T
+T -> T*F | F
+F -> (E) | i
+
+4
+S -> A
+A -> aB | Ad
+B -> b
+C -> g

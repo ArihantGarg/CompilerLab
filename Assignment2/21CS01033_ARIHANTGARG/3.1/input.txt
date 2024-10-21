@@ -1,0 +1,5 @@
+main()
+{
+INT i=0;
+INT _total=0;
+}

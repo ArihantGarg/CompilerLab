@@ -1,0 +1,30 @@
+A + : A -> + T A 
+A $ : A -> e 
+B * : B -> * F B 
+B $ : B -> e 
+E id : E -> T A 
+E ( : E -> T A 
+F id : F -> id 
+F ( : F -> ( E ) 
+T id : T -> F B 
+T ( : T -> F B 
+A + : A -> + T A 
+A $ : A -> e 
+B * : B -> * F B 
+B $ : B -> e 
+E id : E -> T A 
+E ( : E -> T A 
+F id : F -> id 
+F ( : F -> ( E ) 
+T id : T -> F B 
+T ( : T -> F B 
+A + : A -> + T A 
+A $ : A -> e 
+B * : B -> * F B 
+B $ : B -> e 
+E id : E -> T A 
+E ( : E -> T A 
+F id : F -> id 
+F ( : F -> ( E ) 
+T id : T -> F B 
+T ( : T -> F B 

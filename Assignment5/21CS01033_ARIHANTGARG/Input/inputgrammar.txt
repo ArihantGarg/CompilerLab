@@ -1,0 +1,8 @@
+2
+A B
+3
+a x b 
+A
+2
+A -> x B | a
+B -> x A | b

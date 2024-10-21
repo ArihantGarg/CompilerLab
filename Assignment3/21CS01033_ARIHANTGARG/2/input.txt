@@ -1,0 +1,4 @@
+3
+A->abcB|abC|abcC
+B->a
+C->b

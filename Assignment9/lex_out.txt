@@ -1,0 +1,6 @@
+Lex Code
+Enter expression: t0 = c * d
+t1 = b + t0
+t2 = e / f
+t3 = t1 - t2
+Final result stored in: t3
