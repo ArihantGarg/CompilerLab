@@ -1,0 +1,12 @@
+prog 
+    int a b;
+    a := b + c;
+    if d>3 or a<2 then
+        print "Hello"
+        if a<2 then 
+            print "Hi"
+        else 
+            print "Complete"
+        end
+    end
+end

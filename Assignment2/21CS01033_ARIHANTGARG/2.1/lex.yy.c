@@ -462,7 +462,7 @@ char *yytext;
             }
             else if(token[i]!='.' && token[i]!='-')
             {
-                // printf("%c ",token[i]);
+                // Special Character
             }
             else
                 printf("%c",token[i]);

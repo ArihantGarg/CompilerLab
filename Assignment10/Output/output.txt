@@ -1,0 +1,18 @@
+      T0 = b + c
+      a = T0
+      T1 = d > 3
+      T2 = a < 2
+      T3 = T1 or T2
+      T4 = T3
+      If ! (T4) goto L0
+      print "Hello"
+      T5 = a < 2
+      T6 = T5
+      If ! (T6) goto L1
+      print "Hi"
+      goto L2
+ L1 : 
+      print "Complete"
+ L2 : 
+ L0 : 
+      exit

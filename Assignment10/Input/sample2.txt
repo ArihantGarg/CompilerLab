@@ -1,0 +1,43 @@
+prog
+    int x, y;
+    float z;
+    x := 10;
+    y := 20;
+    z := x + y * 2.5;
+    if x > y and y > 20 then
+        print "x is greater than y"
+    else
+        print "y is greater than or equal to x"
+    end
+    while x < 100 do
+        x := x + y;
+        print x
+    end
+    scan y
+    z := z / y;
+    print z
+end
+
+
+
+prog 
+    int a b;
+    a := b + c;
+    if d>3 or a<2 then
+        print "Hello"
+        if a<2 then 
+            print "Hi1"
+            if a<4 then
+                print "Hi2"
+            else 
+                print "Hi3"
+            end
+        else 
+            print "Complete"
+        end
+    end
+    while a < 2 do
+        a := a + c;
+        print a
+    end
+end

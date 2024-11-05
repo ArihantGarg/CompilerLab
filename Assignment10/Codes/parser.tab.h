@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+#ifndef YY_YY_PARSER_TAB_H_INCLUDED
+# define YY_YY_PARSER_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -54,38 +54,50 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    ID = 258,                      /* ID  */
-    PLUS = 259,                    /* PLUS  */
-    MINUS = 260,                   /* MINUS  */
-    MUL = 261,                     /* MUL  */
-    DIV = 262,                     /* DIV  */
-    LPAREN = 263,                  /* LPAREN  */
-    RPAREN = 264                   /* RPAREN  */
+    AND = 258,                     /* AND  */
+    ASSIGN = 259,                  /* ASSIGN  */
+    DO = 260,                      /* DO  */
+    ELSE = 261,                    /* ELSE  */
+    END = 262,                     /* END  */
+    EQ = 263,                      /* EQ  */
+    FLOAT = 264,                   /* FLOAT  */
+    IF = 265,                      /* IF  */
+    INT = 266,                     /* INT  */
+    LPAREN = 267,                  /* LPAREN  */
+    RPAREN = 268,                  /* RPAREN  */
+    LBRACE = 269,                  /* LBRACE  */
+    RBRACE = 270,                  /* RBRACE  */
+    LT = 271,                      /* LT  */
+    GT = 272,                      /* GT  */
+    MINUS = 273,                   /* MINUS  */
+    MULT = 274,                    /* MULT  */
+    DIV = 275,                     /* DIV  */
+    NOT = 276,                     /* NOT  */
+    OR = 277,                      /* OR  */
+    PLUS = 278,                    /* PLUS  */
+    PRINT = 279,                   /* PRINT  */
+    PROG = 280,                    /* PROG  */
+    SCAN = 281,                    /* SCAN  */
+    SEMICOLON = 282,               /* SEMICOLON  */
+    THEN = 283,                    /* THEN  */
+    WHILE = 284,                   /* WHILE  */
+    ID = 285,                      /* ID  */
+    IC = 286,                      /* IC  */
+    FC = 287,                      /* FC  */
+    STR = 288                      /* STR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Token kinds.  */
-#define YYEMPTY -2
-#define YYEOF 0
-#define YYerror 256
-#define YYUNDEF 257
-#define ID 258
-#define PLUS 259
-#define MINUS 260
-#define MUL 261
-#define DIV 262
-#define LPAREN 263
-#define RPAREN 264
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "a.y"
+#line 40 "parser.y"
+ 	
+	char val[100];
 
-    char* string;
-
-#line 89 "y.tab.h"
+#line 101 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -100,4 +112,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
