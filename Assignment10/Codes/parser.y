@@ -1,26 +1,29 @@
 %{ 
+    /* Assignment 10 */
+
     #include <stdio.h> 
     #include <stdlib.h>
     #include <string.h>
     #include "lex.yy.c"
-    int flag=0; 
+    int errorFlag = 0; 
     
     void yyerror(char *str);
-    void new_variable();
-    int new_line_label();
+    void generate_new_variable();
+    int create_new_line_label();
     
-    int variable_count = 0;
-    int line_label_count = 0;
+    int tempVariableCount = 0;  // Count of temporary variables
+    int labelCount = 0;         // Count of line labels
     
-    char variable[10];
-    int else_ref = 0;
-    int if_true_ref = 10;  
-    int while_ref = 0;
-    int while_false_ref = 0;
-    FILE *outfile ; 
+    char tempVariable[10];      // Holds the name of the current temporary variable
+    int elseConditionLabel = 0;   
+    int ifTrueConditionLabel = 10;  
+    int whileConditionLabel = 0;
+    int whileFalseConditionLabel = 0;
+    FILE *outputFile; 
+    
 %} 
 
-/* Definitions */
+/* Token definitions */
 
 %token AND ASSIGN DO ELSE END EQ FLOAT IF INT LPAREN RPAREN LBRACE RBRACE
 %token LT GT MINUS MULT DIV NOT OR PLUS PRINT PROG SCAN SEMICOLON THEN WHILE
@@ -46,10 +49,10 @@
 
 
 /* Rule Section */
-%%
+%% 
 P       : PROG DL SL END 
       { 
-          fprintf(outfile, "      exit\n"); 
+          fprintf(outputFile, "      exit\n"); 
       }
       ;
 
@@ -80,68 +83,58 @@ S       : ES
 
 ES      : ID ASSIGN E SEMICOLON 
       { 
-          fprintf(outfile, "      %s = %s\n", $1, $3); 
+          fprintf(outputFile, "      %s = %s\n", $1, $3); 
       }
       ;
 
 IS      : IF BE {
-
-        new_variable();
-        else_ref = new_line_label();
-        fprintf(outfile, "      %s = %s\n", variable, $2);
-        fprintf(outfile, "      If ! (%s) goto L%d\n", variable, else_ref);
-        
+        generate_new_variable();
+        elseConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      %s = %s\n", tempVariable, $2);
+        fprintf(outputFile, "      If ! (%s) goto L%d\n", tempVariable, elseConditionLabel);
       } 
       THEN SL elsePart END; 
-elsePart: ELSE {
 
-        if_true_ref = new_line_label();
-        fprintf(outfile, "      goto L%d\n", if_true_ref);
-        fprintf(outfile, " L%d : \n", else_ref);
-        else_ref--;
-         
+elsePart: ELSE {
+        ifTrueConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      goto L%d\n", ifTrueConditionLabel);
+        fprintf(outputFile, " L%d : \n", elseConditionLabel);
+        elseConditionLabel--;
       }
       SL { 
-
-          fprintf(outfile, " L%d : \n", if_true_ref); 
+          fprintf(outputFile, " L%d : \n", ifTrueConditionLabel); 
       }
       | { 
-          fprintf(outfile, " L%d : \n", else_ref); 
-          else_ref--;
+          fprintf(outputFile, " L%d : \n", elseConditionLabel); 
+          elseConditionLabel--;
       }
       ;
 
 WS      : WHILE {
-            
-        while_ref = new_line_label();
-        fprintf(outfile, " L%d : \n", while_ref);   
+        whileConditionLabel = create_new_line_label();
+        fprintf(outputFile, " L%d : \n", whileConditionLabel);   
       }
       BE {
-            
-        while_false_ref = new_line_label();
-        fprintf(outfile, "      If ! (%s) goto L%d\n", $3, while_false_ref); 
-        
+        whileFalseConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      If ! (%s) goto L%d\n", $3, whileFalseConditionLabel); 
       }
       DO SL {
-
-        fprintf(outfile, "      goto L%d\n", while_ref); 
-        fprintf(outfile, " L%d : \n", while_false_ref);
-        while_false_ref-=1;
-        while_ref-=1;
-        
+        fprintf(outputFile, "      goto L%d\n", whileConditionLabel); 
+        fprintf(outputFile, " L%d : \n", whileFalseConditionLabel);
+        whileFalseConditionLabel-=1;
+        whileConditionLabel-=1;
       }
-    
       END
       ;
 
 IOS     : PRINT PE
       {
-          fprintf(outfile, "      print %s\n", $2);
+          fprintf(outputFile, "      print %s\n", $2);
       }
       | SCAN ID
       {
-          new_variable();
-          fprintf(outfile, "      %s = scan()\n", $2);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = scan()\n", $2);
       }
       ;
 
@@ -157,9 +150,9 @@ PE      : E
 
 BE      : BE OR AE
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s or %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s or %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | AE
       {
@@ -169,9 +162,9 @@ BE      : BE OR AE
 
 AE      : AE AND NE
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s and %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s and %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | NE
       {
@@ -181,9 +174,9 @@ AE      : AE AND NE
 
 NE      : NOT NE
       {
-          new_variable();
-          fprintf(outfile, "      %s = not %s\n", variable, $2);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = not %s\n", tempVariable, $2);
+          strcpy($$, tempVariable);
       }
       | LBRACE BE RBRACE
       {
@@ -197,35 +190,35 @@ NE      : NOT NE
 
 RE      : E EQ E
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s == %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s == %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | E LT E
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s < %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s < %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | E GT E
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s > %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s > %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       ;
 
 E       : E PLUS T
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s + %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s + %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | E MINUS T
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s - %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s - %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | T
       {
@@ -235,15 +228,15 @@ E       : E PLUS T
 
 T       : T MULT F
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s * %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s * %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | T DIV F
       {
-          new_variable();
-          fprintf(outfile, "       %s = %s / %s\n", variable, $1, $3);
-          strcpy($$, variable);
+          generate_new_variable();
+          fprintf(outputFile, "       %s = %s / %s\n", tempVariable, $1, $3);
+          strcpy($$, tempVariable);
       }
       | F
       {
@@ -274,39 +267,39 @@ F       : LPAREN E RPAREN
 
 int main()
 {
-    extern FILE *yyin;
+    extern FILE *yyin;                              // Input and output files
     yyin = fopen("Input/input.txt", "r");
+    outputFile = fopen("Output/output.txt", "w");
+    fprintf(outputFile,"This is the final resulting Three Address Code from the given input:\n");
+    fprintf(outputFile,"TAC Code:\n\n");
 
-    if (yyin == NULL)
+    yyparse();                                     // Parsing input file
+
+    if (errorFlag == 0)
     {
-      printf("Could not open input file\n");
-      return -1;
+      printf("Parsing Complete. Please check output file.\n");  // Successfully parsed
     }
-
-    outfile = fopen("Output/output.txt", "w");
-    fprintf(outfile,"Three Address Code is:\n\n");
-    yyparse();
-    if (flag == 0)
+    else
     {
-      printf("Program parsed Successfully\n");
+        printf("Error\n");                              // Error
     }
 }
 
 void yyerror(char *str)
 {
     printf("\nError at Line: %d -- %s\n", yylineno, str);
-    flag = 1;
+    errorFlag = 1;
 }
 
-void new_variable()
+void generate_new_variable()
 {
-    char res[10];
-    sprintf(res, "T%d", variable_count++);
-    strcpy(variable, res);
+    char result[10];
+    sprintf(result, "T%d", tempVariableCount++);
+    strcpy(tempVariable, result);
 }
 
-int new_line_label()
+int create_new_line_label()
 {
-    int res = line_label_count++;
-    return res;
+    int result = labelCount++;
+    return result;
 }

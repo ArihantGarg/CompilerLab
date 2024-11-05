@@ -1,20 +1,31 @@
-Three Address Code is:
+This is the final resulting Three Address Code from the given input:
+TAC Code:
 
-      T0 = b + c
-      a = T0
-      T1 = d > 3
-      T2 = a < 2
-      T3 = T1 or T2
-      T4 = T3
-      If ! (T4) goto L0
-      print "Hello"
-      T5 = a < 2
-      T6 = T5
-      If ! (T6) goto L1
-      print "Hi"
-      goto L2
- L1 : 
-      print "Complete"
- L2 : 
+      x = 10
+      y = 20
+      T0 = y * 2.5
+      T1 = x + T0
+      z = T1
+      T2 = x > y
+      T3 = y > 20
+      T4 = T2 and T3
+      T5 = T4
+      If ! (T5) goto L0
+      print "x is greater than y"
+      goto L1
  L0 : 
+      print "y is greater than or equal to x"
+ L1 : 
+ L2 : 
+      T6 = x < 100
+      If ! (T6) goto L3
+      T7 = x + y
+      x = T7
+      print x
+      goto L2
+ L3 : 
+      y = scan()
+       T9 = z / y
+      z = T9
+      print z
       exit

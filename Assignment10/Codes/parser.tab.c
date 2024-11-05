@@ -69,27 +69,30 @@
 /* First part of user prologue.  */
 #line 1 "Codes/parser.y"
  
+    /* Assignment 10 */
+
     #include <stdio.h> 
     #include <stdlib.h>
     #include <string.h>
     #include "lex.yy.c"
-    int flag=0; 
+    int errorFlag = 0; 
     
     void yyerror(char *str);
-    void new_variable();
-    int new_line_label();
+    void generate_new_variable();
+    int create_new_line_label();
     
-    int variable_count = 0;
-    int line_label_count = 0;
+    int tempVariableCount = 0;  // Count of temporary variables
+    int labelCount = 0;         // Count of line labels
     
-    char variable[10];
-    int else_ref = 0;
-    int if_true_ref = 10;  
-    int while_ref = 0;
-    int while_false_ref = 0;
-    FILE *outfile ; 
+    char tempVariable[10];      // Holds the name of the current temporary variable
+    int elseConditionLabel = 0;   
+    int ifTrueConditionLabel = 10;  
+    int whileConditionLabel = 0;
+    int whileFalseConditionLabel = 0;
+    FILE *outputFile; 
+    
 
-#line 93 "Codes/parser.tab.c"
+#line 96 "Codes/parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -169,11 +172,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 40 "Codes/parser.y"
+#line 43 "Codes/parser.y"
  	
 	char val[100];
 
-#line 177 "Codes/parser.tab.c"
+#line 180 "Codes/parser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -641,11 +644,11 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    50,    50,    56,    57,    60,    63,    64,    67,    68,
-      71,    72,    75,    76,    77,    78,    81,    87,    87,    96,
-      96,   108,   114,   119,   125,   114,   137,   141,   148,   152,
-     158,   164,   170,   176,   182,   188,   192,   198,   204,   210,
-     218,   224,   230,   236,   242,   248,   254,   258,   262,   266
+       0,    53,    53,    59,    60,    63,    66,    67,    70,    71,
+      74,    75,    78,    79,    80,    81,    84,    90,    90,    98,
+      98,   107,   113,   117,   121,   113,   130,   134,   141,   145,
+     151,   157,   163,   169,   175,   181,   185,   191,   197,   203,
+     211,   217,   223,   229,   235,   241,   247,   251,   255,   259
 };
 #endif
 
@@ -1257,314 +1260,304 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* P: PROG DL SL END  */
-#line 51 "Codes/parser.y"
+#line 54 "Codes/parser.y"
       { 
-          fprintf(outfile, "      exit\n"); 
+          fprintf(outputFile, "      exit\n"); 
       }
-#line 1265 "Codes/parser.tab.c"
+#line 1268 "Codes/parser.tab.c"
     break;
 
   case 16: /* ES: ID ASSIGN E SEMICOLON  */
-#line 82 "Codes/parser.y"
+#line 85 "Codes/parser.y"
       { 
-          fprintf(outfile, "      %s = %s\n", (yyvsp[-3].val), (yyvsp[-1].val)); 
+          fprintf(outputFile, "      %s = %s\n", (yyvsp[-3].val), (yyvsp[-1].val)); 
       }
-#line 1273 "Codes/parser.tab.c"
+#line 1276 "Codes/parser.tab.c"
     break;
 
   case 17: /* $@1: %empty  */
-#line 87 "Codes/parser.y"
+#line 90 "Codes/parser.y"
                 {
-
-        new_variable();
-        else_ref = new_line_label();
-        fprintf(outfile, "      %s = %s\n", variable, (yyvsp[0].val));
-        fprintf(outfile, "      If ! (%s) goto L%d\n", variable, else_ref);
-        
+        generate_new_variable();
+        elseConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      %s = %s\n", tempVariable, (yyvsp[0].val));
+        fprintf(outputFile, "      If ! (%s) goto L%d\n", tempVariable, elseConditionLabel);
       }
-#line 1286 "Codes/parser.tab.c"
+#line 1287 "Codes/parser.tab.c"
     break;
 
   case 19: /* $@2: %empty  */
-#line 96 "Codes/parser.y"
+#line 98 "Codes/parser.y"
                {
-
-        if_true_ref = new_line_label();
-        fprintf(outfile, "      goto L%d\n", if_true_ref);
-        fprintf(outfile, " L%d : \n", else_ref);
-        else_ref--;
-         
+        ifTrueConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      goto L%d\n", ifTrueConditionLabel);
+        fprintf(outputFile, " L%d : \n", elseConditionLabel);
+        elseConditionLabel--;
       }
-#line 1299 "Codes/parser.tab.c"
+#line 1298 "Codes/parser.tab.c"
     break;
 
   case 20: /* elsePart: ELSE $@2 SL  */
 #line 104 "Codes/parser.y"
          { 
-
-          fprintf(outfile, " L%d : \n", if_true_ref); 
+          fprintf(outputFile, " L%d : \n", ifTrueConditionLabel); 
       }
-#line 1308 "Codes/parser.tab.c"
+#line 1306 "Codes/parser.tab.c"
     break;
 
   case 21: /* elsePart: %empty  */
-#line 108 "Codes/parser.y"
+#line 107 "Codes/parser.y"
         { 
-          fprintf(outfile, " L%d : \n", else_ref); 
-          else_ref--;
+          fprintf(outputFile, " L%d : \n", elseConditionLabel); 
+          elseConditionLabel--;
       }
-#line 1317 "Codes/parser.tab.c"
+#line 1315 "Codes/parser.tab.c"
     break;
 
   case 22: /* $@3: %empty  */
-#line 114 "Codes/parser.y"
+#line 113 "Codes/parser.y"
                 {
-            
-        while_ref = new_line_label();
-        fprintf(outfile, " L%d : \n", while_ref);   
+        whileConditionLabel = create_new_line_label();
+        fprintf(outputFile, " L%d : \n", whileConditionLabel);   
       }
-#line 1327 "Codes/parser.tab.c"
+#line 1324 "Codes/parser.tab.c"
     break;
 
   case 23: /* $@4: %empty  */
-#line 119 "Codes/parser.y"
+#line 117 "Codes/parser.y"
          {
-            
-        while_false_ref = new_line_label();
-        fprintf(outfile, "      If ! (%s) goto L%d\n", (yyvsp[0].val), while_false_ref); 
-        
+        whileFalseConditionLabel = create_new_line_label();
+        fprintf(outputFile, "      If ! (%s) goto L%d\n", (yyvsp[0].val), whileFalseConditionLabel); 
       }
-#line 1338 "Codes/parser.tab.c"
+#line 1333 "Codes/parser.tab.c"
     break;
 
   case 24: /* $@5: %empty  */
-#line 125 "Codes/parser.y"
+#line 121 "Codes/parser.y"
             {
-
-        fprintf(outfile, "      goto L%d\n", while_ref); 
-        fprintf(outfile, " L%d : \n", while_false_ref);
-        while_false_ref-=1;
-        while_ref-=1;
-        
+        fprintf(outputFile, "      goto L%d\n", whileConditionLabel); 
+        fprintf(outputFile, " L%d : \n", whileFalseConditionLabel);
+        whileFalseConditionLabel-=1;
+        whileConditionLabel-=1;
       }
-#line 1351 "Codes/parser.tab.c"
+#line 1344 "Codes/parser.tab.c"
     break;
 
   case 26: /* IOS: PRINT PE  */
-#line 138 "Codes/parser.y"
+#line 131 "Codes/parser.y"
       {
-          fprintf(outfile, "      print %s\n", (yyvsp[0].val));
+          fprintf(outputFile, "      print %s\n", (yyvsp[0].val));
       }
-#line 1359 "Codes/parser.tab.c"
+#line 1352 "Codes/parser.tab.c"
     break;
 
   case 27: /* IOS: SCAN ID  */
-#line 142 "Codes/parser.y"
+#line 135 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = scan()\n", (yyvsp[0].val));
+          generate_new_variable();
+          fprintf(outputFile, "      %s = scan()\n", (yyvsp[0].val));
       }
-#line 1368 "Codes/parser.tab.c"
+#line 1361 "Codes/parser.tab.c"
     break;
 
   case 28: /* PE: E  */
-#line 149 "Codes/parser.y"
+#line 142 "Codes/parser.y"
       { 
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1376 "Codes/parser.tab.c"
+#line 1369 "Codes/parser.tab.c"
     break;
 
   case 29: /* PE: STR  */
-#line 153 "Codes/parser.y"
+#line 146 "Codes/parser.y"
       { 
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1384 "Codes/parser.tab.c"
+#line 1377 "Codes/parser.tab.c"
     break;
 
   case 30: /* BE: BE OR AE  */
-#line 159 "Codes/parser.y"
+#line 152 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s or %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s or %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1394 "Codes/parser.tab.c"
+#line 1387 "Codes/parser.tab.c"
     break;
 
   case 31: /* BE: AE  */
-#line 165 "Codes/parser.y"
+#line 158 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1402 "Codes/parser.tab.c"
+#line 1395 "Codes/parser.tab.c"
     break;
 
   case 32: /* AE: AE AND NE  */
-#line 171 "Codes/parser.y"
+#line 164 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s and %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s and %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1412 "Codes/parser.tab.c"
+#line 1405 "Codes/parser.tab.c"
     break;
 
   case 33: /* AE: NE  */
-#line 177 "Codes/parser.y"
+#line 170 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1420 "Codes/parser.tab.c"
+#line 1413 "Codes/parser.tab.c"
     break;
 
   case 34: /* NE: NOT NE  */
-#line 183 "Codes/parser.y"
+#line 176 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = not %s\n", variable, (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = not %s\n", tempVariable, (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1430 "Codes/parser.tab.c"
+#line 1423 "Codes/parser.tab.c"
     break;
 
   case 35: /* NE: LBRACE BE RBRACE  */
-#line 189 "Codes/parser.y"
+#line 182 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[-1].val));
       }
-#line 1438 "Codes/parser.tab.c"
+#line 1431 "Codes/parser.tab.c"
     break;
 
   case 36: /* NE: RE  */
-#line 193 "Codes/parser.y"
+#line 186 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1446 "Codes/parser.tab.c"
+#line 1439 "Codes/parser.tab.c"
     break;
 
   case 37: /* RE: E EQ E  */
-#line 199 "Codes/parser.y"
+#line 192 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s == %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s == %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1456 "Codes/parser.tab.c"
+#line 1449 "Codes/parser.tab.c"
     break;
 
   case 38: /* RE: E LT E  */
-#line 205 "Codes/parser.y"
+#line 198 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s < %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s < %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1466 "Codes/parser.tab.c"
+#line 1459 "Codes/parser.tab.c"
     break;
 
   case 39: /* RE: E GT E  */
-#line 211 "Codes/parser.y"
+#line 204 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s > %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s > %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1476 "Codes/parser.tab.c"
+#line 1469 "Codes/parser.tab.c"
     break;
 
   case 40: /* E: E PLUS T  */
-#line 219 "Codes/parser.y"
+#line 212 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s + %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s + %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1486 "Codes/parser.tab.c"
+#line 1479 "Codes/parser.tab.c"
     break;
 
   case 41: /* E: E MINUS T  */
-#line 225 "Codes/parser.y"
+#line 218 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s - %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s - %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1496 "Codes/parser.tab.c"
+#line 1489 "Codes/parser.tab.c"
     break;
 
   case 42: /* E: T  */
-#line 231 "Codes/parser.y"
+#line 224 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1504 "Codes/parser.tab.c"
+#line 1497 "Codes/parser.tab.c"
     break;
 
   case 43: /* T: T MULT F  */
-#line 237 "Codes/parser.y"
+#line 230 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "      %s = %s * %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "      %s = %s * %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1514 "Codes/parser.tab.c"
+#line 1507 "Codes/parser.tab.c"
     break;
 
   case 44: /* T: T DIV F  */
-#line 243 "Codes/parser.y"
+#line 236 "Codes/parser.y"
       {
-          new_variable();
-          fprintf(outfile, "       %s = %s / %s\n", variable, (yyvsp[-2].val), (yyvsp[0].val));
-          strcpy((yyval.val), variable);
+          generate_new_variable();
+          fprintf(outputFile, "       %s = %s / %s\n", tempVariable, (yyvsp[-2].val), (yyvsp[0].val));
+          strcpy((yyval.val), tempVariable);
       }
-#line 1524 "Codes/parser.tab.c"
+#line 1517 "Codes/parser.tab.c"
     break;
 
   case 45: /* T: F  */
-#line 249 "Codes/parser.y"
+#line 242 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1532 "Codes/parser.tab.c"
+#line 1525 "Codes/parser.tab.c"
     break;
 
   case 46: /* F: LPAREN E RPAREN  */
-#line 255 "Codes/parser.y"
+#line 248 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[-1].val));
       }
-#line 1540 "Codes/parser.tab.c"
+#line 1533 "Codes/parser.tab.c"
     break;
 
   case 47: /* F: ID  */
-#line 259 "Codes/parser.y"
+#line 252 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1548 "Codes/parser.tab.c"
+#line 1541 "Codes/parser.tab.c"
     break;
 
   case 48: /* F: IC  */
-#line 263 "Codes/parser.y"
+#line 256 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1556 "Codes/parser.tab.c"
+#line 1549 "Codes/parser.tab.c"
     break;
 
   case 49: /* F: FC  */
-#line 267 "Codes/parser.y"
+#line 260 "Codes/parser.y"
       {
           strcpy((yyval.val), (yyvsp[0].val));
       }
-#line 1564 "Codes/parser.tab.c"
+#line 1557 "Codes/parser.tab.c"
     break;
 
 
-#line 1568 "Codes/parser.tab.c"
+#line 1561 "Codes/parser.tab.c"
 
       default: break;
     }
@@ -1757,45 +1750,45 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 272 "Codes/parser.y"
+#line 265 "Codes/parser.y"
 
 
 
 int main()
 {
-    extern FILE *yyin;
+    extern FILE *yyin;                              // Input and output files
     yyin = fopen("Input/input.txt", "r");
+    outputFile = fopen("Output/output.txt", "w");
+    fprintf(outputFile,"This is the final resulting Three Address Code from the given input:\n");
+    fprintf(outputFile,"TAC Code:\n\n");
 
-    if (yyin == NULL)
+    yyparse();                                     // Parsing input file
+
+    if (errorFlag == 0)
     {
-      printf("Could not open input file\n");
-      return -1;
+      printf("Parsing Complete. Please check output file.\n");  // Successfully parsed
     }
-
-    outfile = fopen("Output/output.txt", "w");
-    fprintf(outfile,"Three Address Code is:\n\n");
-    yyparse();
-    if (flag == 0)
+    else
     {
-      printf("Program parsed Successfully\n");
+        printf("Error\n");                              // Error
     }
 }
 
 void yyerror(char *str)
 {
     printf("\nError at Line: %d -- %s\n", yylineno, str);
-    flag = 1;
+    errorFlag = 1;
 }
 
-void new_variable()
+void generate_new_variable()
 {
-    char res[10];
-    sprintf(res, "T%d", variable_count++);
-    strcpy(variable, res);
+    char result[10];
+    sprintf(result, "T%d", tempVariableCount++);
+    strcpy(tempVariable, result);
 }
 
-int new_line_label()
+int create_new_line_label()
 {
-    int res = line_label_count++;
-    return res;
+    int result = labelCount++;
+    return result;
 }
