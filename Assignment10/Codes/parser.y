@@ -284,7 +284,7 @@ int main()
     }
 
     outfile = fopen("Output/output.txt", "w");
-    printf("Three Address Code is:\n\n");
+    fprintf(outfile,"Three Address Code is:\n\n");
     yyparse();
     if (flag == 0)
     {
